@@ -18,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_stmt_bind_param($stmt, 'i', $id);
         
         if (mysqli_stmt_execute($stmt)) {
+            // Явно фиксируем транзакцию, так как автокоммит отключен
+            mysqli_commit($conn);
             $success_message = 'Контакт успешно одобрен и опубликован';
         } else {
             $error_message = 'Ошибка при одобрении контакта: ' . mysqli_error($conn);
@@ -28,6 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_stmt_bind_param($stmt, 'i', $id);
         
         if (mysqli_stmt_execute($stmt)) {
+            // Явно фиксируем транзакцию, так как автокоммит отключен
+            mysqli_commit($conn);
             $success_message = 'Контакт успешно отклонен и удален';
         } else {
             $error_message = 'Ошибка при отклонении контакта: ' . mysqli_error($conn);
@@ -52,6 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mysqli_stmt_bind_param($stmt, 'i', $id);
                 mysqli_stmt_execute($stmt);
                 
+                // Явно фиксируем транзакцию, так как автокоммит отключен
+                mysqli_commit($conn);
                 $success_message = 'Запрос на удаление одобрен, контакт помечен как удаленный';
             } else {
                 $error_message = 'Ошибка при удалении контакта: ' . mysqli_error($conn);
@@ -65,6 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_stmt_bind_param($stmt, 'i', $id);
         
         if (mysqli_stmt_execute($stmt)) {
+            // Явно фиксируем транзакцию, так как автокоммит отключен
+            mysqli_commit($conn);
             $success_message = 'Запрос на удаление отклонен';
         } else {
             $error_message = 'Ошибка при отклонении запроса на удаление: ' . mysqli_error($conn);
@@ -136,9 +144,10 @@ while ($row = mysqli_fetch_assoc($result)) {
         body {
             font-family: 'Montserrat', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            background-color: #f5f7fa;
         }
         .main-color {
-            background-color: <?= $main_color ?>;
+            background-color: #002060;
         }
         .main-color-text {
             color: <?= $main_color ?>;
@@ -199,13 +208,17 @@ while ($row = mysqli_fetch_assoc($result)) {
     </script>
 </head>
 <body class="bg-gray-50">
-    <header class="main-color text-white p-4 shadow-md sticky top-0 z-20">
+    <header class="main-color text-white p-3 shadow-md sticky top-0 z-20">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl md:text-2xl font-bold">ПАНЕЛЬ АДМИНИСТРАТОРА</h1>
+            <a href="/" class="flex items-center">
+                <img src="img/logo.jpg" alt="БукиҺи" class="h-6 w-6 mr-2 rounded-full">
+                <h1 class="text-lg md:text-xl font-medium">БукиҺи - АДМИНИСТРАТОР</h1>
+            </a>
             <!-- Десктопное меню -->
             <nav class="desktop-menu">
                 <ul class="flex space-x-2 md:space-x-4">
                     <li><a href="/" class="hover:text-gray-200 text-sm md:text-base">Главная</a></li>
+                    <li><a href="support.php" class="hover:text-gray-200 text-sm md:text-base">Поддержка</a></li>
                     <li><a href="admin.php" class="hover:text-gray-200 text-sm md:text-base">Админ</a></li>
                     <li><a href="login.php?logout=1" class="hover:text-gray-200 text-sm md:text-base">Выйти</a></li>
                 </ul>
@@ -223,6 +236,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                     </div>
                     <ul class="py-2">
                         <li><a href="/" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Главная</a></li>
+                        <li><a href="support.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Поддержка</a></li>
                         <li><a href="admin.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Админ</a></li>
                         <li><a href="login.php?logout=1" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Выйти</a></li>
                     </ul>

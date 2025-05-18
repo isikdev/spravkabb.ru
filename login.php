@@ -1,48 +1,35 @@
 <?php
 require_once 'config.php';
 
-$errors = [];
+$error = '';
 
+// Handle logout
 if (isset($_GET['logout'])) {
-    $_SESSION = [];
-    session_destroy();
-    header('Location: /');
+    // Clear admin session
+    unset($_SESSION['admin']);
+    header('Location: index.php');
     exit;
 }
 
+// Check if already logged in
+if (is_admin()) {
+    header('Location: admin.php');
+    exit;
+}
+
+// Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = isset($_POST['username']) ? trim($_POST['username']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
     
-    if (empty($username)) {
-        $errors[] = 'Введите имя пользователя';
-    }
-    
-    if (empty($password)) {
-        $errors[] = 'Введите пароль';
-    }
-    
-    if (empty($errors)) {
-        $query = "SELECT id, username, password FROM admin_users WHERE username = ?";
-        $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, 's', $username);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        
-        if ($user = mysqli_fetch_assoc($result)) {
-            if (password_verify($password, $user['password'])) {
-                $_SESSION['admin'] = true;
-                $_SESSION['admin_id'] = $user['id'];
-                $_SESSION['admin_username'] = $user['username'];
-                
-                header('Location: admin.php');
-                exit;
-            } else {
-                $errors[] = 'Неверный пароль';
-            }
-        } else {
-            $errors[] = 'Пользователь не найден';
-        }
+    // Simple authentication - in a real app you'd use password_hash() and password_verify()
+    if ($username === $admin_username && $password === $admin_password) {
+        // Set admin session
+        $_SESSION['admin'] = true;
+        header('Location: admin.php');
+        exit;
+    } else {
+        $error = 'Неверное имя пользователя или пароль';
     }
 }
 ?>
@@ -51,16 +38,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход в панель администратора - Телефонный справочник</title>
+    <title>Вход в систему - Телефонный справочник</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Montserrat', sans-serif;
             -webkit-tap-highlight-color: transparent;
+            background-color: #f5f7fa;
         }
         .main-color {
-            background-color: <?= $main_color ?>;
+            background-color: #002060;
         }
         .main-color-text {
             color: <?= $main_color ?>;
@@ -70,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         /* Улучшения для мобильных устройств */
         @media (max-width: 640px) {
-            input, select, button, textarea {
+            input, select, button {
                 font-size: 16px !important; /* Предотвращает масштабирование на iOS */
             }
             .container {
@@ -110,18 +98,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </script>
 </head>
 <body class="bg-gray-50">
-    <header class="main-color text-white p-4 shadow-md sticky top-0 z-20">
+    <header class="main-color text-white p-3 shadow-md sticky top-0 z-20">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl md:text-2xl font-bold">СПРАВОЧНИК</h1>
+            <a href="/" class="flex items-center">
+                <img src="img/logo.jpg" alt="БукиҺи" class="h-6 w-6 mr-2 rounded-full">
+                <h1 class="text-lg md:text-xl font-medium">БукиҺи</h1>
+            </a>
             <!-- Десктопное меню -->
             <nav class="desktop-menu">
                 <ul class="flex space-x-2 md:space-x-4">
                     <li><a href="/" class="hover:text-gray-200 text-sm md:text-base">Главная</a></li>
                     <li><a href="add.php" class="hover:text-gray-200 text-sm md:text-base">Добавить контакт</a></li>
-                    <?php if (is_admin()): ?>
-                        <li><a href="admin.php" class="hover:text-gray-200 text-sm md:text-base">Админ</a></li>
-                        <li><a href="login.php?logout=1" class="hover:text-gray-200 text-sm md:text-base">Выйти</a></li>
-                    <?php endif; ?>
                 </ul>
             </nav>
             <!-- Мобильное меню (гамбургер) -->
@@ -138,10 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <ul class="py-2">
                         <li><a href="/" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Главная</a></li>
                         <li><a href="add.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Добавить контакт</a></li>
-                        <?php if (is_admin()): ?>
-                            <li><a href="admin.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Админ</a></li>
-                            <li><a href="login.php?logout=1" class="block px-4 py-2 text-gray-800 hover:bg-gray-100">Выйти</a></li>
-                        <?php endif; ?>
                     </ul>
                 </div>
             </div>
@@ -149,40 +132,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </header>
 
     <div class="container mx-auto py-4 md:py-8 px-4">
-        <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-4 md:p-6">
-            <h2 class="text-xl md:text-2xl font-medium main-color-text mb-6 text-center">Вход в панель администратора</h2>
+        <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl md:text-2xl font-medium main-color-text mb-6 text-center">Вход в админ-панель</h2>
             
-            <?php if (!empty($errors)): ?>
+            <?php if (!empty($error)): ?>
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-                    <ul class="list-disc pl-4">
-                        <?php foreach ($errors as $error): ?>
-                            <li><?= htmlspecialchars($error) ?></li>
-                        <?php endforeach; ?>
-                    </ul>
+                    <p><?= htmlspecialchars($error) ?></p>
                 </div>
             <?php endif; ?>
-            
-            <form action="login.php" method="post" class="space-y-4">
+
+            <form action="login.php" method="post" class="space-y-6">
                 <div>
-                    <label for="username" class="block text-gray-700 mb-1">Имя пользователя</label>
-                    <input type="text" id="username" name="username" value="<?= isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '' ?>" 
+                    <label for="username" class="block text-gray-700 mb-2">Имя пользователя</label>
+                    <input type="text" id="username" name="username" 
                            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
                 </div>
                 
                 <div>
-                    <label for="password" class="block text-gray-700 mb-1">Пароль</label>
+                    <label for="password" class="block text-gray-700 mb-2">Пароль</label>
                     <input type="password" id="password" name="password" 
                            class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" required>
                 </div>
                 
-                <div class="pt-4">
-                    <button type="submit" class="w-full py-3 px-6 main-color text-white rounded-lg hover:bg-opacity-90 transition-all">
+                <div>
+                    <button type="submit" class="w-full py-3 main-color text-white rounded-lg hover:bg-opacity-90 transition-all">
                         Войти
                     </button>
                 </div>
                 
-                <div class="text-center mt-4">
-                    <a href="/" class="text-gray-600 hover:text-gray-800">Вернуться на главную страницу</a>
+                <div class="text-center">
+                    <a href="/" class="text-gray-600 hover:text-gray-800">Вернуться на главную</a>
                 </div>
             </form>
         </div>

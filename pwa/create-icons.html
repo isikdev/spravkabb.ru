@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Создание иконок для PWA</title>
+        <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .icon-canvas {
+            display: none;
+        }
+        .icon-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .icon-item {
+            text-align: center;
+        }
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #002060;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #001540;
+        }
+        .instructions {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+    </style>
+    </head>
+    <body>
+        <h1>Генератор иконок для PWA</h1>
+
+        <div class="button-container">
+            <button id="generate-button">Сгенерировать иконки</button>
+            <button id="download-button" disabled>Скачать все иконки</button>
+        </div>
+
+        <canvas id="icon-canvas" class="icon-canvas" width="512"
+            height="512"></canvas>
+
+        <div id="icon-container" class="icon-container"></div>
+
+        <div class="instructions">
+            <h3>Инструкция:</h3>
+            <ol>
+                <li>Нажмите кнопку "Сгенерировать иконки", чтобы создать иконки
+                    разных размеров для PWA.</li>
+                <li>Сгенерированные иконки будут отображены ниже.</li>
+                <li>Вы можете скачать их по отдельности, нажав на каждую
+                    иконку.</li>
+                <li>Или используйте кнопку "Скачать все иконки", чтобы получить
+                    все иконки в формате zip.</li>
+                <li>Разместите скачанные иконки в директории /pwa/icons/ вашего
+                    проекта.</li>
+            </ol>
+        </div>
+
+        <script>
+        // Размеры иконок
+        const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        
+        // Функция для генерации иконки
+        function generateIcon(size) {
+            const canvas = document.getElementById('icon-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Очищаем холст
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Устанавливаем размер холста
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Фон
+            ctx.fillStyle = '#002060';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Буква Б в круге
+            const centerX = size / 2;
+            const centerY = size / 2;
+            const radius = size * 0.35;
+            
+            // Белый круг
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            
+            // Буква Б
+            ctx.font = `bold ${radius * 1.2}px sans-serif`;
+            ctx.fillStyle = '#002060';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Б', centerX, centerY);
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        // Функция для создания и отображения иконок
+        function createIcons() {
+            const container = document.getElementById('icon-container');
+            container.innerHTML = '';
+            
+            iconSizes.forEach(size => {
+                const iconData = generateIcon(size);
+                
+                const iconWrapper = document.createElement('div');
+                iconWrapper.className = 'icon-item';
+                
+                const img = document.createElement('img');
+                img.src = iconData;
+                img.width = Math.min(size, 150);
+                img.height = Math.min(size, 150);
+                img.alt = `Иконка ${size}x${size}`;
+                img.title = `Нажмите, чтобы скачать (${size}x${size})`;
+                img.style.cursor = 'pointer';
+                
+                img.addEventListener('click', () => {
+                    const link = document.createElement('a');
+                    link.href = iconData;
+                    link.download = `icon-${size}x${size}.png`;
+                    link.click();
+                });
+                
+                const label = document.createElement('p');
+                label.textContent = `${size}x${size}`;
+                
+                iconWrapper.appendChild(img);
+                iconWrapper.appendChild(label);
+                container.appendChild(iconWrapper);
+            });
+            
+            document.getElementById('download-button').disabled = false;
+        }
+        
+        // Обработчик для кнопки генерации
+        document.getElementById('generate-button').addEventListener('click', createIcons);
+        
+        // Обработчик для кнопки скачивания всех иконок
+        document.getElementById('download-button').addEventListener('click', () => {
+            alert('Для скачивания всех иконок, пожалуйста, нажмите на каждую иконку отдельно. В этой демо-версии функция скачивания всех иконок недоступна.');
+        });
+    </script>
+    </body>
+</html>
