@@ -208,12 +208,8 @@ require_once 'config.php';
                     </div>
                 </div>
             </div>
-
-            <div class="mt-8 text-center">
-                <p class="text-gray-600">Мы ответим вам в ближайшее время в рабочие часы: <br>с 9:00 до 18:00 по
-                    московскому времени</p>
-            </div>
         </div>
+    </div>
     </div>
 
     <script>
